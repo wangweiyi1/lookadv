@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh_CN">
+<head>
+    <title>谁在看广告</title>
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="expires" content="0">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="image/favicon.ico" type="image/x-icon">
+    <link rel="bookmark" href="image/favicon.ico" type="image/x-icon">
+    <!-- External CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="css/animate.css"/>
+    <link rel="stylesheet" href="css/base.css"/>
+    <link rel="stylesheet" href="js/lib/toastmessage/resources/css/jquery.toastmessage.css"/>
+    <!-- JavaScript -->
+    <script type="text/javascript">var language =   'zh';</script>
+    <script src="js/common/jquery.js"></script>
+    <script src="js/common/vue.js"></script>
+    <script src="js/echarts/echarts.js"></script>
+    <script src="js/echarts/china.js"></script>
+    <script src="js/common/i18n.js"></script>
+    <script src="js/common/jquery.animateNumber.js"></script>
+    <script src="js/lib/toastmessage/javascript/jquery.toastmessage.min.js"></script>
+    <script src="js/component/component.js"></script>
+    <!-- lib -->
+    <link rel="stylesheet" href="js/lib/ios-switch/lc_switch.css"/>
+    <script src="js/lib/ios-switch/lc_switch.js"></script>
+</head>
+<body>
+<div id="app1" class="container" style="display:none;" :style="{width: clientWidth - 20 + 'px' }">
+    <div class="logo-container hidden-xs"><img class="logo" src="css/images/logo-200*60.png"/></div>
+    <div class="row">
+        <div class="config-icon visible-xs" @click="mobileConfigToggle" style="position:absolute;top:7.5px;right:5px;z-index:20;"><img width="30px" height="30px" src="css/images/icon/shezhi.svg"/></div>
+        <div id="configmo" class="mobile-config" :style="{minHeight: clientHeight + 'px' }">
+            <div class="config-set">
+                <span>{{ label.configRefresh }}</span><br/>
+                <input id="switch" type="checkbox" :checked="autoRun" class="lcs_check" autocomplete="off" /><br>
+            </div>
+            <div class="config-set">
+                <span>{{ label.refreshFrequency }}<em>{{ label.companySecond }}</em></span><br/>
+                <img @click="timer > 5 ? timer = timer - 1 : ''" width="20" height="20" src="css/images/icon/subtract.svg" />
+                <input class="input-short" type="text" :value="timer" readonly/>
+                <img @click="timer < 60 ? timer = timer + 1 : ''" width="20" height="20" src="css/images/icon/add.svg" />
+            </div>
+            <div class="config-set">
+                <span>{{ label.mapScaling }}</span><br/>
+                <img @click="zoom > 1 ? zoom = zoom -1 : ''" width="20" height="20" src="css/images/icon/subtract.svg" />
+                <input class="input-short" type="text" :value="zoom" readonly/>
+                <img @click="zoom < 4 ? zoom = zoom +1 : ''" width="20" height="20" src="css/images/icon/add.svg" />
+            </div>
+            <div class="config-set" style="position: absolute;bottom: 0px;padding:15px;width:100%;text-align:center;">
+                <button type="button" style="width:100px;margin:0px auto;" class="btn btn-default" @click="logout">{{ label.logout }}</button>
+            </div>
+        </div>
+        <div class="subject-container visible-xs col-xs-12">
+            <h4 class="animated bounceInRight"><img width="18px" height="18px" src="css/images/icon/qiye.svg" style="margin-right:5px;"/>{{ data.adOwner != "" ? data.adOwner : "--" }} </h4>
+            <div class="row subject animated bounceInRight">
+                <div class="cumulative  col-sm-6 col-xs-6" v-if="reports.impCounter > 0"><img src="css/images/icon/baoguang.svg"/><span>{{ label.impCounterLabel }}:{{ reports.impCounter }}</span></div>
+                <div class="cumulative  col-sm-6 col-xs-6" v-if="reports.impCounter > 0 && reports.clickCounter > 0"><img src="css/images/icon/dianji.svg"/><span>{{ label.clickCounterLabel }}:{{ reports.clickCounter }}</span></div>
+                <div class="cumulative  col-sm-6 col-xs-6" v-if="reports.impCounter > 0 && reports.clickCounter > 0 && reports.reachCounter > 0"><img src="css/images/icon/daoda.svg"/><span>{{ label.reachCounterLabel }}:{{ reports.reachCounter }}</span></div>
+                <div class="cumulative  col-sm-6 col-xs-6" v-if="reports.cvtCounter > 0"><img src="css/images/icon/zhuanhua.svg"/><span>{{ label.cvtCounterLaebl }}:{{ reports.cvtCounter }}</span></div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-5 col-sm-6 col-xs-12 shadow" :style="{minHeight: clientHeight + 'px' }">
+            <div class="media details animated bounceIn">
+                <div class="media-left">
+                    <img class="media-object" width="18" height="18" src="css/images/icon/xiangqing.svg">
+                </div>
+                <div class="media-body">
+                    <h4 class="media-heading"> {{ label.details }} </h4>
+                </div>
+            </div>
+            <data-label :label="label.behaviourLabel" :message="data.logType" icon="wangluoxingwei"></data-label>
+            <data-label :label="label.timestampLabel" :message="data.timestamp" icon="laifangshijian"></data-label>
+            <data-label :label="label.cityNameLabel" :message="data.cityName" icon="didian"></data-label>
+            <data-label :label="label.demographicLabel" :message="data.demographic.replaceAll('#','、')" icon="renkoushuxing"></data-label>
+            <data-label :label="label.longTermInterestLabel" :message="data.longTermInterest.replaceAll('#','、')" icon="gerenguanzhu"></data-label>
+            <data-label :label="label.inMarketLabel" :message="data.inMarket.replaceAll('#','、')" icon="goumaiqingxiang"></data-label>
+            <div class="creative">
+                <a :href="creativeUrl_img != '' ? creativeUrl_img : creativeUrl_product" target="_Blank" v-show="scale < 0.8">{{ label.originalImage }}</a>
+                <div style="width:300px;height:250px;margin: 0 auto;">
+                    <img class="last-element" v-show="creativeUrl_img != ''" :src="creativeUrl_img" style="transform-origin: 0px 0px;" :width="data.width" :height="data.height"/>
+                    <iframe class="last-element" v-show="creativeUrl_product != ''" :width="data.width" :height="data.height" :src="creativeUrl_product" frameborder="0" scrolling="no" style="transform-origin: 0px 0px;"></iframe>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8 col-md-7 col-sm-6 col-xs-12 map-container">
+            <div class="subject-container hidden-xs">
+                <h4 class="animated bounceInRight"><img width="18px" height="18px" src="css/images/icon/qiye.svg" style="margin-right:5px;"/>{{ data.adOwner != "" ? data.adOwner : "--" }}</h4>
+                <div class="row subject animated bounceInRight">
+                    <div class="cumulative  col-sm-6 col-xs-6" v-if="reports.impCounter > 0"><img src="css/images/icon/baoguang.svg"/><span>{{ label.impCounterLabel }}:<em v-number="reports.impCounter">{{ reports.impCounter }}</em></span></div>
+                    <div class="cumulative  col-sm-6 col-xs-6" v-if="reports.impCounter > 0 && reports.clickCounter > 0"><img src="css/images/icon/dianji.svg"/><span>{{ label.clickCounterLabel }}:<em v-number="reports.clickCounter">{{ reports.clickCounter }}</em></span></div>
+                    <div class="cumulative  col-sm-6 col-xs-6" v-if="reports.impCounter > 0 && reports.clickCounter > 0 && reports.reachCounter > 0"><img src="css/images/icon/daoda.svg"/><span>{{ label.reachCounterLabel }}:<em v-number="reports.reachCounter">{{ reports.reachCounter }}</em></span></div>
+                    <div class="cumulative  col-sm-6 col-xs-6" v-if="reports.cvtCounter > 0"><img src="css/images/icon/zhuanhua.svg"/><span>{{ label.cvtCounterLaebl }}:<em v-number="reports.cvtCounter">{{ reports.cvtCounter }}</em></span></div>
+                </div><!-- shezhi_xuanfu.svg -->
+                <div class="config-icon" v-on:click="config = !config"><img @mouseover="setupIcon = 'css/images/icon/shezhi_xuanfu.svg'" @mouseout="setupIcon = 'css/images/icon/shezhi.svg'" width="30px" height="30px" :src="setupIcon"/></div>
+                <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
+                    <div class="config-container" v-show="config">
+                        <div class="config-set">
+                            <span>{{ label.configRefresh }}</span><br/>
+                            <input id="switch" type="checkbox" :checked="autoRun" class="lcs_check" autocomplete="off" /><br>
+                        </div>
+                        <div class="config-set">
+                            <span>{{ label.refreshFrequency }}<em>{{ label.companySecond }}</em></span><br/>
+                            <img @click="timer > 5 ? timer = timer - 1 : ''" width="20" height="20" src="css/images/icon/subtract.svg" />
+                            <input class="input-short" type="text" :value="timer" readonly/>
+                            <img @click="timer < 60 ? timer = timer + 1 : ''" width="20" height="20" src="css/images/icon/add.svg" />
+                        </div>
+                        <div class="config-set">
+                            <span>{{ label.advertiserList }}</span><br/>
+                            <select id="choiceAdv" @change="updateChoice">
+                                <option value="0">{{ label.allAdvertisers }}</option>
+                                <option v-for="adv in advs" :value="adv.companyId">
+                                    {{ adv.advertiserCompanyName }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="config-set">
+                            <span>{{ label.mapScaling }}</span><br/>
+                            <img @click="zoom > 1 ? zoom = zoom -1 : ''" width="20" height="20" src="css/images/icon/subtract.svg" />
+                            <input class="input-short" type="text" :value="zoom" readonly/>
+                            <img @click="zoom < 4 ? zoom = zoom +1 : ''" width="20" height="20" src="css/images/icon/add.svg" />
+                        </div>
+                        <div class="config-set" style="position: absolute;top: 0px;right: 0px;">
+                            <button type="button" class="btn btn-link" @click="logout">{{ label.logout }}</button>
+                        </div>
+                    </div>
+                </transition>
+            </div>
+            <div id="mapChart" style="width:100%;height:600px;z-index:10;"></div>
+        </div>
+    </div>
+</div>
+<script src="js/pagejs/vue-config.js"></script>
+<script src="js/pagejs/lookadv.js"></script>
+<script src="js/pagejs/data.js"></script>
+<script type="text/javascript">
+    document.getElementById("mapChart").style.height=(document.compatMode === "CSS1Compat") ? document.documentElement.clientHeight : document.body.clientHeight;
+    $(document).ready(function(){
+        init(data);
+        $('.lcs_check').lc_switch();
+        $('.lcs_check').on("lcs-statuschange",function(){
+            app.autoRun = !app.autoRun;
+        });
+    });
+</script>
+<script src="js/pagejs/config.js"></script>
+</body>
+</html>
