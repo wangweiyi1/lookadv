@@ -299,9 +299,11 @@ function createVue(datas){
                     },
                     silent:true
 	   	        };
-	    		if(app.zoom>1 && app.autoRun){
-	    			geo.center=center;
-	    		}
+				if(app.zoom>1 && app.autoRun){
+					geo.center=center;
+				}else if(app.zoom ==1){
+					geo.center=[105.38, 36.07];
+				}
 	            myChart.setOption({
 		   	    	tooltip: {
 		               	show:false
